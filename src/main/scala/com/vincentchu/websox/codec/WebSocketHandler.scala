@@ -10,11 +10,9 @@ class WebSocketHandler extends SimpleChannelHandler {
   override def writeRequested(ctx: ChannelHandlerContext, e: MessageEvent) {
     println("** writeRequested")
     e.getMessage match {
-      case httpResp: HttpResponse =>
+      case _: HttpResponse =>
         println("RETURN")
-        val chFuture = Channels.future(ctx.getChannel)
-        chFuture.addListener(ChannelFutureListener.CLOSE)
-        Channels.write(ctx, chFuture, httpResp)
+        ctx.sendDownstream(e)
     }
   }
 
@@ -29,15 +27,27 @@ class WebSocketHandler extends SimpleChannelHandler {
   private[this] def handleHandshake(ctx: ChannelHandlerContext, req: HttpRequest) {
     val factory = wsHandshakerFactory(req)
     Option(factory.newHandshaker(req)) match {
-      case Some(wsHandshaker) if isWebSocketRequest(req) =>
+      case Some(wsHandshaker) =>
         println("ATTEMPT HANDSHAKE")
-        wsHandshaker.handshake(ctx.getChannel, req).toTwitterFuture map { _ =>
-          println("** handshake completed!")
+        try {
+          wsHandshaker.handshake(ctx.getChannel, req).toTwitterFuture map { _ =>
+            println("** handshake completed!")
+          }
+        } catch {
+          case _: Exception => sendErrorAndClose(factory, ctx)
         }
-      case _ =>
-        println("SEENDING ERR")
-        factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel)
+
+      case _ => sendErrorAndClose(factory, ctx)
     }
+  }
+
+  private[this] def sendErrorAndClose(
+    factory: WebSocketServerHandshakerFactory,
+    ctx: ChannelHandlerContext
+  ) {
+    println("SEENDING ERR")
+    factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel)
+    ctx.getChannel.close()
   }
 
   private[this] def isWebSocketRequest(req: HttpRequest) =
