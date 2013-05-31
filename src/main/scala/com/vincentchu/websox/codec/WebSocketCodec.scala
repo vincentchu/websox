@@ -4,7 +4,6 @@ import com.twitter.finagle.{Codec, CodecFactory}
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 
-
 class FooHandler extends SimpleChannelHandler {
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     println("*** mesgReceived")
@@ -31,6 +30,7 @@ class WebSocketCodec extends CodecFactory[String, String] {
     new Codec[String, String] {
       def pipelineFactory = new ChannelPipelineFactory {
         def getPipeline = {
+          println("MAKING NEW HANDLER")
           val pipeline = Channels.pipeline()
           pipeline.addLast("decoder", new HttpRequestDecoder)
           pipeline.addLast("encoder", new HttpResponseEncoder)
