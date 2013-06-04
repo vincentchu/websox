@@ -3,6 +3,7 @@ package com.vincentchu.websox.codec
 import com.twitter.finagle.{Codec, CodecFactory}
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
+import com.vincentchu.websox.websocket.{MessageBijection, WebSocketService, Message, StringMessageBijection}
 
 class FooHandler extends SimpleChannelHandler {
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
@@ -25,16 +26,16 @@ class FooHandler extends SimpleChannelHandler {
   }
 }
 
-class WebSocketCodec extends CodecFactory[String, Unit] {
+class WebSocketCodec[A](bijection: MessageBijection[A], service: WebSocketService[A]) extends CodecFactory[Message[A], Unit] {
   def server = Function.const {
-    new Codec[String, Unit] {
+    new Codec[Message[A], Unit] {
       def pipelineFactory = new ChannelPipelineFactory {
         def getPipeline = {
           println("MAKING NEW HANDLER")
           val pipeline = Channels.pipeline()
           pipeline.addLast("decoder", new HttpRequestDecoder)
           pipeline.addLast("encoder", new HttpResponseEncoder)
-          pipeline.addLast("foo", new WebSocketHandler)
+          pipeline.addLast("foo", new WebSocketHandler(bijection, service))
 
           pipeline
         }

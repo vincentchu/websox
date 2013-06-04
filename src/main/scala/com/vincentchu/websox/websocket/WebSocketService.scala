@@ -2,19 +2,25 @@ package com.vincentchu.websox.websocket
 
 import com.twitter.util.Future
 import org.jboss.netty.channel.ChannelHandlerContext
+import com.twitter.finagle.Service
 
 object WebSocketService {
   object SocketIdNotFound extends Exception
   object SocketIdExists extends Exception
 }
 
-trait WebSocketService[-A] {
+trait WebSocketService[-A] extends Service[Message[A], Unit] {
   def registerSocket(
     socketId: SocketId,
     headers: Map[String, String],
     ctx: ChannelHandlerContext
   ): Future[WebSocket]
 
+  def apply(req: Message[A]): Future[Unit] = {
+    getSocket(req.socketId) flatMap { ws =>
+      onMessage(ws, req.message)
+    }
+  }
 
   def getSocket(socketId: SocketId): Future[WebSocket]
 

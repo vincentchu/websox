@@ -5,7 +5,7 @@ import org.jboss.netty.channel.ChannelHandlerContext
 import com.twitter.util.Future
 import com.twitter.finagle.netty3.Conversions._
 
-trait LocalWebSocketService[-A] extends WebSocketService[A] {
+trait LocalWebSocketService[A] extends WebSocketService[A] {
 
   import WebSocketService._
 
@@ -14,7 +14,10 @@ trait LocalWebSocketService[-A] extends WebSocketService[A] {
     handlerContext: ChannelHandlerContext
   ) {
     def getChannel = handlerContext.getChannel
-    def write(mesg: A): Future[Unit] = getChannel.write(mesg).toTwitterFuture
+    def write(mesg: A): Future[Unit] = {
+      getChannel.write(Message(websocket.socketId, mesg)).toTwitterFuture
+    }
+
     def close(): Future[Unit] = getChannel.close().toTwitterFuture
   }
 
