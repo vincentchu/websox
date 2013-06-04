@@ -10,10 +10,11 @@ object App {
   def main(args: Array[String]) {
     println("hello, world")
 
-    val service = new Service[String, String] {
-      def apply(req: String): Future[String] = {
+    val service = new Service[String, Unit] {
+      def apply(req: String): Future[Unit] = {
         println("RECV:", req)
-        Future.value("HELLO")
+//        Future.value("HELLO")
+        Future.Unit
       }
     }
 

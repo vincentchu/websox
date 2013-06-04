@@ -4,9 +4,10 @@ import com.twitter.finagle.netty3.Conversions._
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
-import scala.Some
+import com.vincentchu.websox.websocket.MessageBijection
+import scala.runtime.BoxedUnit
 
-class WebSocketHandler extends SimpleChannelHandler {
+class WebSocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandler {
 
   private var handshakerFactory: Option[WebSocketServerHandshakerFactory] = None
   private var handshaker: Option[WebSocketServerHandshaker] = None
@@ -14,15 +15,29 @@ class WebSocketHandler extends SimpleChannelHandler {
   override def writeRequested(ctx: ChannelHandlerContext, e: MessageEvent) {
     println("** writeRequested")
     e.getMessage match {
-      case _ => ctx.sendDownstream(e)
+      case _: BoxedUnit => println("** GOT UNIT")
+      case resp: A      =>
+        println("ENCODE TO TEXTFRAME")
+        ctx.getChannel.write(mesg.unapply(resp))
+      case _ =>
+        println("GOT OTHER")
+        ctx.sendDownstream(e)
     }
   }
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
+    println("** messageReceived")
     e.getMessage match {
       case httpReq: HttpRequest    => handleHandshake(ctx, httpReq)
       case wsFrame: WebSocketFrame => handleWebSocketReq(ctx, wsFrame)
-      case _                       => ctx.getChannel.close()
+      case x: String               =>
+        println("** something else", x)
+        ctx.sendUpstream(e)
+
+      case y =>
+        println("** something here", y)
+        ctx.getChannel.close()
+
     }
   }
 
@@ -31,8 +46,7 @@ class WebSocketHandler extends SimpleChannelHandler {
     frame match {
       case textFrame: TextWebSocketFrame =>
         val txt = textFrame.getText
-        val resp = new TextWebSocketFrame(txt.toUpperCase)
-        ctx.getChannel.write(resp)
+        Channels.fireMessageReceived(ctx.getChannel, mesg(textFrame))
 
       case pingFrame: PingWebSocketFrame =>
         ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))

@@ -25,9 +25,9 @@ class FooHandler extends SimpleChannelHandler {
   }
 }
 
-class WebSocketCodec extends CodecFactory[String, String] {
+class WebSocketCodec extends CodecFactory[String, Unit] {
   def server = Function.const {
-    new Codec[String, String] {
+    new Codec[String, Unit] {
       def pipelineFactory = new ChannelPipelineFactory {
         def getPipeline = {
           println("MAKING NEW HANDLER")
