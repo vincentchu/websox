@@ -20,6 +20,9 @@ trait LocalWebSocketService[-A] extends WebSocketService[A] {
 
   private[this] val contextMap = new ConcurrentHashMap[SocketId, WebSocketContext]()
 
+  private[this] def getSocketContext(socketId: SocketId): Option[WebSocketContext] =
+    Option(contextMap.get(socketId))
+
   def registerSocket(socketId: SocketId, headers: Map[String, String], ctx: ChannelHandlerContext): Future[WebSocket] = {
     val ws = WebSocket(socketId, headers)
     val wsContext = WebSocketContext(ws, ctx)
@@ -37,6 +40,9 @@ trait LocalWebSocketService[-A] extends WebSocketService[A] {
     }
   }
 
+  def isConnected(socketId: SocketId): Future[Boolean] =
+    Future.value(getSocketContext(socketId).isDefined)
+
   def writeMessage(socketId: SocketId, mesg: A): Future[Unit] = {
     getSocketContext(socketId) match {
       case Some(context) => context.write(mesg)
@@ -50,7 +56,4 @@ trait LocalWebSocketService[-A] extends WebSocketService[A] {
       case None          => Future.exception(SocketIdNotFound)
     }
   }
-
-  private[this] def getSocketContext(socketId: SocketId): Option[WebSocketContext] =
-    Option(contextMap.get(socketId))
 }
