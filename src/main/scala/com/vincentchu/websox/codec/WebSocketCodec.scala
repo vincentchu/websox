@@ -42,17 +42,7 @@ class WebSocketCodec extends CodecFactory[String, String] {
     }
   }
 
-  def client = Function.const {
-    new Codec[String, String] {
-      def pipelineFactory = new ChannelPipelineFactory {
-        def getPipeline = {
-          val pipeline = Channels.pipeline()
-          pipeline.addLast("decoder", new HttpResponseDecoder)
-          pipeline.addLast("encoder", new HttpRequestEncoder)
-
-          pipeline
-        }
-      }
-    }
+  def client: this.Client = Function.const {
+    throw new UnsupportedOperationException("Clients not supported")
   }
 }

@@ -34,6 +34,9 @@ class WebSocketHandler extends SimpleChannelHandler {
         val resp = new TextWebSocketFrame(txt.toUpperCase)
         ctx.getChannel.write(resp)
 
+      case pingFrame: PingWebSocketFrame =>
+        ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))
+
       case closeFrame: CloseWebSocketFrame =>
         println("** closeFrame")
         handshaker.foreach { _.close(ctx.getChannel, closeFrame) }
