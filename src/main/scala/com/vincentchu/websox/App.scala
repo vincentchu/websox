@@ -6,6 +6,7 @@ import com.vincentchu.websox.codec._
 import java.net.InetSocketAddress
 import com.twitter.finagle.builder.{Server, ServerBuilder}
 import com.vincentchu.websox.websocket.{StringMessageBijection, WebSocket, LocalWebSocketService}
+import com.vincentchu.websox.test.TestCodec
 
 object App {
   def main(args: Array[String]) {
@@ -17,6 +18,13 @@ object App {
 //        Future.Unit
 //      }
 //    }
+//
+//    val server: Server = ServerBuilder()
+//      .codec(new TestCodec)
+//      .bindTo(new InetSocketAddress(8080))
+//      .name("websox")
+//      .build(service)
+
 
     val service = new LocalWebSocketService[String] {
       def onConnect(ws: WebSocket) = {
@@ -28,10 +36,8 @@ object App {
         println("LocalWebSocketService got", msg)
 
         val m = "ZOMG you sent: " + msg
-
-        writeMessage(ws, m)
-
-        Future.Unit
+//        writeMessage(ws, m)
+        Future.value(m)
       }
 
       def onClose(ws: WebSocket) = {
@@ -41,7 +47,7 @@ object App {
     }
 
     val server: Server = ServerBuilder()
-      .codec(new WebSocketCodec(StringMessageBijection, service))
+      .codec(new WebSocketCodec(StringMessageBijection))
       .bindTo(new InetSocketAddress(8080))
       .name("websox")
       .build(service)

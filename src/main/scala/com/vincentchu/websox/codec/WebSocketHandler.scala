@@ -7,7 +7,7 @@ import org.jboss.netty.handler.codec.http.websocketx._
 import com.vincentchu.websox.websocket.{WebSocketService, Message, MessageBijection}
 import scala.runtime.BoxedUnit
 
-class WebSocketHandler[A](mesg: MessageBijection[A], service: WebSocketService[A]) extends SimpleChannelHandler {
+class WebSocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandler {
 
   private var handshakerFactory: Option[WebSocketServerHandshakerFactory] = None
   private var handshaker: Option[WebSocketServerHandshaker] = None
@@ -15,13 +15,18 @@ class WebSocketHandler[A](mesg: MessageBijection[A], service: WebSocketService[A
   override def writeRequested(ctx: ChannelHandlerContext, e: MessageEvent) {
     println("** writeRequested")
     e.getMessage match {
-      case _: BoxedUnit => println("** GOT UNIT")
+      case m: String =>
+        println("GOT String")
+        val x = ctx.getChannel.write(new TextWebSocketFrame(m))
+        ctx.getChannel.write(new TextWebSocketFrame(m))
       case resp: Message[A]      =>
         println("ENCODE TO TEXTFRAME")
         ctx.getChannel.write(mesg.invert(resp.message))
       case _ =>
         println("GOT OTHER")
         ctx.sendDownstream(e)
+        println("setSuccess!!")
+        e.getFuture.setSuccess()
     }
   }
 
@@ -31,7 +36,9 @@ class WebSocketHandler[A](mesg: MessageBijection[A], service: WebSocketService[A
       case httpReq: HttpRequest    => handleHandshake(ctx, httpReq)
       case wsFrame: WebSocketFrame => handleWebSocketReq(ctx, wsFrame)
       case x: Message[A]               =>
-        println("** something else", x)
+        println("** something else in ", ctx.getName, x, ctx.getChannel.isReadable, ctx.getChannel.isWritable)
+        println("** pipeline", ctx.getPipeline.getNames)
+//        Channels.fireMessageReceived(ctx, "str")
         ctx.sendUpstream(e)
 
       case y =>
@@ -45,7 +52,9 @@ class WebSocketHandler[A](mesg: MessageBijection[A], service: WebSocketService[A
     println("handle wsSocketRequest")
     frame match {
       case textFrame: TextWebSocketFrame =>
+        ctx.getChannel.setReadable(false)
         val message = Message.fromDecodedMessage("socketId", mesg(textFrame))
+        ctx.getChannel.setReadable(true)
         Channels.fireMessageReceived(ctx.getChannel, message)
 
       case pingFrame: PingWebSocketFrame =>
@@ -64,7 +73,7 @@ class WebSocketHandler[A](mesg: MessageBijection[A], service: WebSocketService[A
         try {
           wsHandshaker.handshake(ctx.getChannel, req).toTwitterFuture map { _ =>
             println("** handshake completed!")
-            service.registerSocket("socketId", Map.empty, ctx)
+//            service.registerSocket("socketId", Map.empty, ctx)
           }
         } catch {
           case _: Exception => sendErrorAndClose(ctx)

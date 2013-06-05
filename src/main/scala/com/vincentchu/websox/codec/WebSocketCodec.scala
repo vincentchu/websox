@@ -26,16 +26,16 @@ class FooHandler extends SimpleChannelHandler {
   }
 }
 
-class WebSocketCodec[A](bijection: MessageBijection[A], service: WebSocketService[A]) extends CodecFactory[Message[A], Unit] {
+class WebSocketCodec[A](bijection: MessageBijection[A]) extends CodecFactory[Message[A], String] {
   def server = Function.const {
-    new Codec[Message[A], Unit] {
+    new Codec[Message[A], String] {
       def pipelineFactory = new ChannelPipelineFactory {
         def getPipeline = {
           println("MAKING NEW HANDLER")
           val pipeline = Channels.pipeline()
           pipeline.addLast("decoder", new HttpRequestDecoder)
           pipeline.addLast("encoder", new HttpResponseEncoder)
-          pipeline.addLast("foo", new WebSocketHandler(bijection, service))
+          pipeline.addLast("foo", new WebSocketHandler(bijection))
 
           pipeline
         }

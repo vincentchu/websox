@@ -9,17 +9,20 @@ object WebSocketService {
   object SocketIdExists extends Exception
 }
 
-trait WebSocketService[-A] extends Service[Message[A], Unit] {
+trait WebSocketService[-A] extends Service[Message[A], String] {
   def registerSocket(
     socketId: SocketId,
     headers: Map[String, String],
     ctx: ChannelHandlerContext
   ): Future[WebSocket]
 
-  def apply(req: Message[A]): Future[Unit] = {
-    getSocket(req.socketId) flatMap { ws =>
-      onMessage(ws, req.message)
-    }
+  def apply(req: Message[A]): Future[String] = {
+//    getSocket(req.socketId) flatMap { ws =>
+//      onMessage(ws, req.message)
+//    }
+
+    val ws = WebSocket("socketId")
+    onMessage(ws, req.message) map { _ => "asdf"}
   }
 
   def getSocket(socketId: SocketId): Future[WebSocket]
