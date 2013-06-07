@@ -1,4 +1,4 @@
-package com.vincentchu.websox.oldwebsocket
+package com.vincentchu.websox.websocket
 
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame
 

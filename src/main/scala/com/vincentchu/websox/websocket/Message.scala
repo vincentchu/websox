@@ -1,4 +1,4 @@
-package com.vincentchu.websox.oldwebsocket
+package com.vincentchu.websox.websocket
 
 object Message {
   def fromDecodedMessage[A](socketId: SocketId, message: A) = new Message(
