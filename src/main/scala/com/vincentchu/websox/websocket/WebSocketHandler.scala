@@ -4,18 +4,19 @@ import com.twitter.finagle.netty3.Conversions._
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
+import java.util.UUID
 
-class WebSocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandler {
+class WebsocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandler {
 
-  private var handshakerFactory: Option[WebSocketServerHandshakerFactory] = None
-  private var handshaker: Option[WebSocketServerHandshaker] = None
+  private[this] val socketId: SocketId = UUID.randomUUID.toString
+  private[this] var handshakerFactory: Option[WebSocketServerHandshakerFactory] = None
+  private[this] var handshaker: Option[WebSocketServerHandshaker] = None
 
   override def writeRequested(ctx: ChannelHandlerContext, e: MessageEvent) {
     println("** writeRequested")
     e.getMessage match {
       case m: String =>
         println("GOT String")
-        val x = ctx.getChannel.write(new TextWebSocketFrame(m))
         ctx.getChannel.write(new TextWebSocketFrame(m))
       case resp: Message[A]      =>
         println("ENCODE TO TEXTFRAME")
@@ -71,7 +72,6 @@ class WebSocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandle
         try {
           wsHandshaker.handshake(ctx.getChannel, req).toTwitterFuture map { _ =>
             println("** handshake completed!")
-//            service.registerSocket("socketId", Map.empty, ctx)
           }
         } catch {
           case _: Exception => sendErrorAndClose(ctx)
