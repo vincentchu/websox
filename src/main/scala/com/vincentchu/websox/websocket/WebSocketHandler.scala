@@ -5,73 +5,59 @@ import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
 import java.util.UUID
-import com.twitter.util.{Promise, Try, Future}
+import com.twitter.util.Promise
 
-class WebsocketHandler[A](mesg: MessageBijection[A], service: WebsocketService[A]) extends SimpleChannelHandler {
+class WebsocketHandler[A](
+  mesgConverter: MessageBijection[A],
+  service: WebsocketService[A]
+) extends SimpleChannelHandler {
 
   private[this] val socketId: SocketId = UUID.randomUUID.toString
+  private[this] val websocket = new Promise[Websocket[A]]
   private[this] var handshakerFactory: Option[WebSocketServerHandshakerFactory] = None
   private[this] var handshaker: Option[WebSocketServerHandshaker] = None
-  private[this] val websocket = new Promise[Websocket[A]]
 
   override def writeRequested(ctx: ChannelHandlerContext, e: MessageEvent) {
-    println("** writeRequested")
     e.getMessage match {
-      case httpResp: HttpResponse =>
-        println("httpResponse")
-        ctx.sendDownstream(e)
-      case textFrame: TextWebSocketFrame =>
-        println("textFrame")
+      case _: HttpResponse | _: TextWebSocketFrame | _: CloseWebSocketFrame =>
         ctx.sendDownstream(e)
       case resp: A =>
-        println("ENCODE TO TEXTFRAME")
-        ctx.getChannel.write(mesg.invert(resp))
-      case _ =>
-        println("GOT OTHER")
-        ctx.sendDownstream(e)
+        ctx.getChannel.write(mesgConverter.invert(resp))
     }
   }
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
-    println("** messageReceived")
     e.getMessage match {
       case httpReq: HttpRequest    => handleHandshake(ctx, httpReq)
       case wsFrame: WebSocketFrame => handleWebSocketReq(ctx, wsFrame)
-      case m: A => println("messageReceived: A")
-        websocket foreach {
-          _.sendUpstream(m)
-        }
-
-      case y =>
-        println("** something here", y)
-        ctx.getChannel.close()
-
+      case message: A              => websocket foreach { _.sendUpstream(message) }
     }
   }
 
   private[this] def handleWebSocketReq(ctx: ChannelHandlerContext, frame: WebSocketFrame) {
-    println("handle wsSocketRequest")
     frame match {
       case textFrame: TextWebSocketFrame =>
-        Channels.fireMessageReceived(ctx.getChannel, mesg(textFrame))
+        Channels.fireMessageReceived(ctx.getChannel, mesgConverter(textFrame))
 
       case pingFrame: PingWebSocketFrame =>
         ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))
 
       case closeFrame: CloseWebSocketFrame =>
-        println("** closeFrame")
-        handshaker.foreach { _.close(ctx.getChannel, closeFrame) }
+        println("closeFrame")
+        websocket foreach { ws =>
+          service.deregisterSocket(ws, fireCallback = false)
+        } ensure {
+          handshaker.foreach { _.close(ctx.getChannel, closeFrame) }
+        }
     }
   }
 
   private[this] def handleHandshake(ctx: ChannelHandlerContext, req: HttpRequest) {
-    println("** handleHandshake")
     setHandshakerFactory(req)
     handshaker match {
       case Some(wsHandshaker) =>
         try {
           wsHandshaker.handshake(ctx.getChannel, req).toTwitterFuture map { _ =>
-            println("** handshake completed!")
             setWebsocketAndRegister(ctx)
           }
         } catch {
@@ -96,20 +82,26 @@ class WebsocketHandler[A](mesg: MessageBijection[A], service: WebsocketService[A
   }
 
   private[this] def closeCallback() {
-    println("** closeCallback")
+    websocket map { ws =>
+      val closeFrame = new CloseWebSocketFrame(1000, "Server requested close")
+      Channels.write(ws.context.getChannel, closeFrame)
+    }
   }
 
   private[this] def downstreamCallback(message: A) {
-    println("DOWN STREAM", message)
     websocket.foreach { ws =>
       Channels.write(ws.context.getChannel, message)
     }
   }
 
+  private[this] def closeChannel(ctx: ChannelHandlerContext) {
+    ctx.getChannel.close()
+  }
+
   private[this] def sendErrorAndClose(ctx: ChannelHandlerContext) {
     handshakerFactory foreach { factory =>
       factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel)
-      ctx.getChannel.close()
+      closeChannel(ctx)
     }
   }
 

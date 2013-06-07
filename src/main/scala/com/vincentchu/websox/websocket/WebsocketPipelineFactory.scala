@@ -28,7 +28,7 @@ class WebsocketPipelineFactory extends ChannelPipelineFactory {
     val pipeline = Channels.pipeline()
     pipeline.addLast("decoder", new HttpRequestDecoder)
     pipeline.addLast("encoder", new HttpResponseEncoder)
-    pipeline.addLast("websox", new WebsocketHandler[String](StringMessageBijection, new FooService))
+    pipeline.addLast("websox", new WebsocketHandler(StringMessageBijection, new FooService))
 
     pipeline
   }
