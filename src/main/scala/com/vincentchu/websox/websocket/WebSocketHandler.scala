@@ -11,6 +11,7 @@ class WebsocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandle
   private[this] val socketId: SocketId = UUID.randomUUID.toString
   private[this] var handshakerFactory: Option[WebSocketServerHandshakerFactory] = None
   private[this] var handshaker: Option[WebSocketServerHandshaker] = None
+  private[this] var websocket: Option[Websocket[A]] = None
 
   override def writeRequested(ctx: ChannelHandlerContext, e: MessageEvent) {
     println("** writeRequested")
@@ -34,11 +35,7 @@ class WebsocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandle
     e.getMessage match {
       case httpReq: HttpRequest    => handleHandshake(ctx, httpReq)
       case wsFrame: WebSocketFrame => handleWebSocketReq(ctx, wsFrame)
-      case x: Message[A]               =>
-        println("** something else in ", ctx.getName, x, ctx.getChannel.isReadable, ctx.getChannel.isWritable)
-        println("** pipeline", ctx.getPipeline.getNames)
-//        Channels.fireMessageReceived(ctx, "str")
-        ctx.sendUpstream(e)
+      case m: A =>
 
       case y =>
         println("** something here", y)
@@ -51,10 +48,7 @@ class WebsocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandle
     println("handle wsSocketRequest")
     frame match {
       case textFrame: TextWebSocketFrame =>
-        ctx.getChannel.setReadable(false)
-        val message = Message.fromDecodedMessage("socketId", mesg(textFrame))
-        ctx.getChannel.setReadable(true)
-        Channels.fireMessageReceived(ctx.getChannel, message)
+        Channels.fireMessageReceived(ctx.getChannel, mesg(textFrame))
 
       case pingFrame: PingWebSocketFrame =>
         ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))
