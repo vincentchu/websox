@@ -43,7 +43,6 @@ class WebsocketHandler[A](
         ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))
 
       case closeFrame: CloseWebSocketFrame =>
-        println("closeFrame")
         websocket foreach { ws =>
           service.deregisterSocket(ws, fireCallback = false)
         } ensure {

@@ -14,7 +14,11 @@ class FooService extends LocalWebsocketService[String] {
     println("FooService onMessage received", msg, "from", socketId)
     val mm: String = "You sez: " + msg
 
-    writeMessage(socketId, mm)
+    if (msg == "closeme") {
+      close(socketId)
+    } else {
+      writeMessage(socketId, mm)
+    }
   }
 
   def onClose(socketId: SocketId): Future[Unit] = {
