@@ -1,9 +1,9 @@
-package com.vincentchu.websox.codec
+package com.vincentchu.websox.oldcodec
 
 import com.twitter.finagle.{Codec, CodecFactory}
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
-import com.vincentchu.websox.websocket.{MessageBijection, WebSocketService, Message, StringMessageBijection}
+import com.vincentchu.websox.oldwebsocket.{MessageBijection, WebSocketService, Message, StringMessageBijection}
 
 class FooHandler extends SimpleChannelHandler {
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {

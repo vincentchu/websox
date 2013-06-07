@@ -1,10 +1,10 @@
-package com.vincentchu.websox.codec
+package com.vincentchu.websox.oldcodec
 
 import com.twitter.finagle.netty3.Conversions._
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
-import com.vincentchu.websox.websocket.{WebSocketService, Message, MessageBijection}
+import com.vincentchu.websox.oldwebsocket.{WebSocketService, Message, MessageBijection}
 import scala.runtime.BoxedUnit
 
 class WebSocketHandler[A](mesg: MessageBijection[A]) extends SimpleChannelHandler {

@@ -1,4 +1,4 @@
-package com.vincentchu.websox.websocket
+package com.vincentchu.websox.oldwebsocket
 
 import java.util.concurrent.ConcurrentHashMap
 import org.jboss.netty.channel.ChannelHandlerContext

@@ -1,5 +1,5 @@
 package com.vincentchu.websox
 
-package object websocket {
+package object oldwebsocket {
   type SocketId = String
 }

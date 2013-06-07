@@ -1,4 +1,4 @@
-package com.vincentchu.websox.websocket
+package com.vincentchu.websox.oldwebsocket
 
 import com.twitter.util.Time
 
