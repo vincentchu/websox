@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+  </head>
+
+  <body>
+    <h1>Simple Chat Server</h1>
+
+    <h2>Messages</h2>
+    <div id="messages">
+    </div>
+
+    <hr>
+    <div>
+      <form id="input">
+        Say something: <input id="mesg" name="mesg" type="text">
+      </form>
+    </div>
+
+    <script>
+      var ws = new WebSocket("ws://localhost:8080");
+      ws.onmessage = function (event) {
+        var elem = $("<p>").html(event.data);
+        $("#messages").append(elem);
+      }
+
+      $("#input").bind("submit", function (event) {
+        var mesg = $("#mesg").val();
+        ws.send(mesg);
+        $("#mesg").val("");
+        var elem = $("<p>").html("I said: " + mesg);
+        $("#messages").append(elem);
+
+        return false;
+      });
+    </script>
+  </body>
+</html>
+
