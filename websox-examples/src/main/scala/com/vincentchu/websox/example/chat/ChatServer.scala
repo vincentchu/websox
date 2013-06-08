@@ -30,7 +30,7 @@ object ChatServer {
       def onConnect(socketId: SocketId): Future[Unit] = {
         println("** connection received from %s".format(socketId))
         connectedClients.put(socketId, Time.now) // Record when client connected
-        Future.Unit
+        broadcast(socketId, "%s connected".format(socketId))
       }
 
       def onMessage(socketId: SocketId, msg: String): Future[Unit] = {
