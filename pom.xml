@@ -4,9 +4,9 @@
   <artifactId>websox</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>${project.artifactId}</name>
-  <description>My Web App</description>
+  <description>Simple websocket framework for scala using Twitter's Future library.</description>
   <inceptionYear>2013</inceptionYear>
-  <url>http://github.com/path/to/project</url>
+  <url>http://github.com/vincentchu/websox</url>
 
   <properties>
     <maven.compiler.source>1.6</maven.compiler.source>
@@ -23,48 +23,34 @@
     </repository>
   </repositories>
 
-  <!-- DEPENDENCIES -->
-
   <dependencies>
-
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.version}</artifactId>
       <version>1.7.2</version>
     </dependency>
-
     <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>finagle-core</artifactId>
       <type>pom</type>
       <version>6.4.0</version>
     </dependency>
-
-    <!-- Be sure to depend on the various finagle sub modules that you need.
-         For example, here's how you would depend on finagle-thrift -->
     <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>finagle-http</artifactId>
       <type>pom</type>
       <version>6.4.0</version>
     </dependency>
-
   </dependencies>
 
-  <!-- END DEPENDENCIES -->
-
-  <!-- BUILD SETTINGS -->
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>
-
-    <!-- BUILD PLUGINS -->
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -94,7 +80,6 @@
               <id>main</id>
               <mainClass>com.vincentchu.websox.App</mainClass>
             </launcher>
-            <!-- you could define other launcher -->
           </launchers>
         </configuration>
         <executions>
@@ -113,7 +98,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -137,7 +121,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.scalatest</groupId>
         <artifactId>scalatest-maven-plugin</artifactId>
@@ -151,7 +134,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
@@ -160,15 +142,11 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.3.2</version>
       </plugin>
-
     </plugins>
-    <!-- END BUILD PLUGINS -->
-
   </build>
 </project>
