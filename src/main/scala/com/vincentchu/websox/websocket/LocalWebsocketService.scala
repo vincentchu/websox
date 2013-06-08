@@ -13,24 +13,20 @@ trait LocalWebsocketService[A] extends WebsocketService[A] {
     Option(contextMap.get(socketId))
 
   def registerSocket(ws: Websocket[A]): Future[Unit] = {
-    println("LocalWebsocketService registerSocket", ws.socketId)
     Option(contextMap.putIfAbsent(ws.socketId, ws)) match {
       case Some(_) => Future.exception(SocketIdExists)
-      case None    =>
-        println("LocalWebsocketService reg complete")
-        Future.Unit
+      case None    => Future.Unit
     }
   }
 
-  def deregisterSocket(socketId: SocketId, fireCallback: Boolean): Future[Unit] = {
+  def deregisterSocket(socketId: SocketId, closeChannel: Boolean): Future[Unit] = {
     get(socketId) match {
+      case None         => Future.exception(SocketIdNotFound)
       case Some(socket) => onClose(socketId) ensure {
-        if (fireCallback) {
-          println("CALLING socket.close()")
+        if (closeChannel) {
           socket.close()
         }
       }
-      case None => Future.exception(SocketIdNotFound)
     }
   }
 
@@ -45,14 +41,9 @@ trait LocalWebsocketService[A] extends WebsocketService[A] {
     Future.value(get(socketId).isDefined)
 
   def writeMessage(socketId: SocketId, mesg: A): Future[Unit] = {
-    println("LocalWebsocketService: writeMessage", mesg)
     get(socketId) match {
-      case Some(socket) =>
-        println("LocalWebsocketService: sendDownstream", mesg)
-        Future.value(socket.sendDownstream(mesg))
-      case None         =>
-        println("LocalWebsocketService: writeMessage socketnot found ...", socketId)
-        Future.exception(SocketIdNotFound)
+      case Some(socket) => Future.value(socket.sendDownstream(mesg))
+      case None         => Future.exception(SocketIdNotFound)
     }
   }
 }

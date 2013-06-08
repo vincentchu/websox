@@ -12,7 +12,6 @@ trait Websocket[A] {
   }
 
   def sendDownstream(mesg: A) {
-    println("Websocket: sendDownstream", mesg)
     downstreamQueue ! mesg
   }
 
