@@ -2,6 +2,11 @@
 
 websox is a scala based websocket library based on Twitter's `Future` library. It incorporates a few features from finagle, but does not implement or use finagle's `Codec` and `Service` constructs.
 
+The project is split into two pieces:
+
+ - `websox-server` - Core library
+ - `websox-examples` - A few examples
+
 ## Using websox
 
 To use websox to create websocket applications, you must provide two things:
@@ -84,4 +89,8 @@ Below is a simple sample application that uses the websox library and demonstrat
 
         Server(config).bind() // .bind() actually binds and starts server
       }
-    } 
+    }     
+
+## Acknowledgements
+
+This project was a project I used to learn more about Netty and Finagle internals. It was inspired by Jeff Smick's [finagle-websockets](https://github.com/sprsquish/finagle-websocket) implementation.
