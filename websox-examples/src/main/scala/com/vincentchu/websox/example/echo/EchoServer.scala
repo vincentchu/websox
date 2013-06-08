@@ -1,32 +1,29 @@
-package com.vincentchu.websox
+package com.vincentchu.websox.example.echo
 
 import com.vincentchu.websox.websocket._
-import com.twitter.util.Future
 import com.vincentchu.websox.message.StringMessage
+import com.twitter.util.Future
 
-object App {
+object EchoServer {
   def main(args: Array[String]) {
-    println("hello, world")
-
     val service = new LocalWebsocketService[String] {
       def onConnect(socketId: SocketId): Future[Unit] = {
-        println("FooService onConnect")
+        println("** onConnect")
         Future.Unit
       }
 
       def onMessage(socketId: SocketId, msg: String): Future[Unit] = {
-        println("FooService onMessage received", msg, "from", socketId)
-        val mm: String = "You sez: " + msg
+        println("** onMessage from %s received: %s".format(socketId, msg))
 
         if (msg == "closeme") {
           close(socketId)
         } else {
-          writeMessage(socketId, mm)
+          writeMessage(socketId, msg.toUpperCase)
         }
       }
 
       def onClose(socketId: SocketId): Future[Unit] = {
-        println("FooService onClose from", socketId)
+        println("** onClose from %s".format(socketId))
         Future.Unit
       }
     }
@@ -37,6 +34,7 @@ object App {
       8080
     )
 
+    println("** Starting EchoServer")
     Server(config).bind()
   }
 }
