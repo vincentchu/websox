@@ -15,7 +15,7 @@ trait LocalWebsocketService[A] extends WebsocketService[A] {
   def registerSocket(ws: Websocket[A]): Future[Unit] = {
     Option(socketMap.putIfAbsent(ws.socketId, ws)) match {
       case Some(_) => Future.exception(SocketIdExists)
-      case None    => Future.Unit
+      case None    => onConnect(ws.socketId)
     }
   }
 
