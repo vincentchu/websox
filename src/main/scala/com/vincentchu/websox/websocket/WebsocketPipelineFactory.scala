@@ -3,37 +3,15 @@ package com.vincentchu.websox.websocket
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http.{HttpResponseEncoder, HttpRequestDecoder}
 import com.twitter.util.Future
-import com.vincentchu.websox.message.StringMessageBijection
+import com.vincentchu.websox.message.{Message, StringMessageBijection}
 
-class FooService extends LocalWebsocketService[String] {
-  def onConnect(socketId: SocketId): Future[Unit] = {
-    println("FooService onConnect")
-    Future.Unit
-  }
 
-  def onMessage(socketId: SocketId, msg: String): Future[Unit] = {
-    println("FooService onMessage received", msg, "from", socketId)
-    val mm: String = "You sez: " + msg
-
-    if (msg == "closeme") {
-      close(socketId)
-    } else {
-      writeMessage(socketId, mm)
-    }
-  }
-
-  def onClose(socketId: SocketId): Future[Unit] = {
-    println("FooService onClose from", socketId)
-    Future.Unit
-  }
-}
-
-class WebsocketPipelineFactory extends ChannelPipelineFactory {
+class WebsocketPipelineFactory[A](mesg: Message[A], service: WebsocketService[A]) extends ChannelPipelineFactory {
   def getPipeline = {
     val pipeline = Channels.pipeline()
     pipeline.addLast("decoder", new HttpRequestDecoder)
     pipeline.addLast("encoder", new HttpResponseEncoder)
-    pipeline.addLast("websox", new WebsocketHandler(StringMessageBijection, new FooService))
+    pipeline.addLast("websox", new WebsocketHandler(mesg.encoderDecoder, service))
 
     pipeline
   }

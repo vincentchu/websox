@@ -5,11 +5,10 @@ import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
 import java.util.UUID
-import com.twitter.util.Promise
-import com.vincentchu.websox.message.MessageBijection
+import com.twitter.util.{Bijection, Promise}
 
 class WebsocketHandler[A](
-  mesgConverter: MessageBijection[A],
+  mesgConverter: Bijection[A, TextWebSocketFrame],
   service: WebsocketService[A]
 ) extends SimpleChannelHandler {
 
@@ -23,7 +22,7 @@ class WebsocketHandler[A](
       case _: HttpResponse | _: TextWebSocketFrame | _: CloseWebSocketFrame =>
         ctx.sendDownstream(e)
       case resp: A =>
-        ctx.getChannel.write(mesgConverter.invert(resp))
+        ctx.getChannel.write(mesgConverter(resp))
     }
   }
 
@@ -38,7 +37,7 @@ class WebsocketHandler[A](
   private[this] def handleWebSocketReq(ctx: ChannelHandlerContext, frame: WebSocketFrame) {
     frame match {
       case textFrame: TextWebSocketFrame =>
-        Channels.fireMessageReceived(ctx.getChannel, mesgConverter(textFrame))
+        Channels.fireMessageReceived(ctx.getChannel, mesgConverter.invert(textFrame))
 
       case pingFrame: PingWebSocketFrame =>
         ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))

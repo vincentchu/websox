@@ -6,10 +6,10 @@ import java.util.concurrent.Executors
 import java.net.InetSocketAddress
 
 object Server {
-  def apply(port: Int) = new Server(port)
+  def apply[A](config: ServerConfig[A]) = new Server(config)
 }
 
-class Server(val port: Int) {
+class Server[A](val config: ServerConfig[A]) {
 
   private[this] val factory = new NioServerSocketChannelFactory(
     Executors.newCachedThreadPool,
@@ -18,9 +18,9 @@ class Server(val port: Int) {
 
   private[this] val bootstrap = new ServerBootstrap(factory)
 
-  bootstrap.setPipelineFactory(new WebsocketPipelineFactory)
+  bootstrap.setPipelineFactory(new WebsocketPipelineFactory(config.converter, config.service))
   bootstrap.setOption("child.tcpNoDelay", true)
   bootstrap.setOption("child.keepAlive", true)
 
-  def bind() = bootstrap.bind(new InetSocketAddress(port))
+  def bind() = bootstrap.bind(new InetSocketAddress(config.port))
 }
