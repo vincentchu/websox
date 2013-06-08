@@ -1,9 +1,6 @@
 package com.vincentchu.websox.websocket
 
 import com.twitter.util.Future
-import org.jboss.netty.channel.ChannelHandlerContext
-import com.twitter.finagle.Service
-import com.vincentchu.websox.websocket.Message
 
 object WebsocketService {
   object SocketIdNotFound extends Exception

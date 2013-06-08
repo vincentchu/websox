@@ -3,6 +3,7 @@ package com.vincentchu.websox.websocket
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http.{HttpResponseEncoder, HttpRequestDecoder}
 import com.twitter.util.Future
+import com.vincentchu.websox.message.StringMessageBijection
 
 class FooService extends LocalWebsocketService[String] {
   def onConnect(socketId: SocketId): Future[Unit] = {

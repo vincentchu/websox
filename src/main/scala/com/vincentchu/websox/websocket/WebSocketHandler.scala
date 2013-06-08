@@ -6,6 +6,7 @@ import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
 import java.util.UUID
 import com.twitter.util.Promise
+import com.vincentchu.websox.message.MessageBijection
 
 class WebsocketHandler[A](
   mesgConverter: MessageBijection[A],
