@@ -27,14 +27,14 @@ Implementations of `WebsocketService[A]` implement application logic and act on 
 
  - `onConnect` - Fired when a new websocket is connected
  - `onMessage` - Fired when a new message is read from the websocket
-  - `onClose` - Fire when the websocket is closed, irregardless of if fired from the client or server
+ - `onClose` - Fired when the websocket is closed, irregardless of who (client or server) initiated the close
   
 ### Lifecycle of a websocket
 
 Briefly, the following is approximately what happens when the websocket library is used:
 
 1. Client connects to server
-2. A randomly generated `socketId` of type `SocketId` is created
+2. A randomly generated `socketId` of type `SocketId` is created and registered
 3. Client/Server negotiate successful handshake
 4. `registerSocket` is called; socket registered with `WebsocketService`
 5. `onConnect` is fired
@@ -47,7 +47,7 @@ Briefly, the following is approximately what happens when the websocket library 
 
 ## Putting it all together
 
-Below is a simple sample application that uses the websox library and demonstrates most of the basic o
+Below is a simple sample application that uses the websox library and demonstrates most of the basic functions of the websocket service. The app is a modified echo app, echoing back whatever input it receives as an uppercase string. If the user sends "closeme", the server initiates a close of the session.
 
     object App {
       def main(args: Array[String]) {
@@ -58,7 +58,7 @@ Below is a simple sample application that uses the websox library and demonstrat
           }
 
           def onMessage(socketId: SocketId, msg: String): Future[Unit] = {
-            println("onMessage received", msg, "from", socketId)
+            println("** onMessage received " + msg + " from " + socketId)
 
             if (msg == "closeme") {
               // Initiate server-side websocket close
@@ -77,11 +77,11 @@ Below is a simple sample application that uses the websox library and demonstrat
         }
 
         val config = ServerConfig(
-          StringMessage,
-          service,
-          8080
+          StringMessage, // The type of messages your service can handle
+          service,       // Your websocket service
+          8080           // Port you wish to listen on
         )
 
-        Server(config).bind()
+        Server(config).bind() // .bind() actually binds and starts server
       }
     } 
