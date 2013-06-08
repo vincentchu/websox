@@ -10,22 +10,26 @@ import scala.collection.JavaConverters._
 /**
  * ChatServer
  *
- * This is a simple, modified echo server websocket app. When it receives a
- * message from a connected client, it echos the message back to the client,
- * except the message will be upper cased. If the server receives "closeme"
- * from the connected client, it will close the websocket from the server
- * side.
+ * This is a simple chat application. When each client connects, its socketId
+ * and when it connected are recorded in a ConcurrentHashMap. When a message
+ * is received from a connected client, the server will broadcast to all other
+ * connected clients, except the client that originally sent the message.
+ *
+ * When a connected client disconnects, this is broadcasted to the other
+ * connected clients and the leaving client's socketId is removed from the
+ * ConcurrentHashMap.
  */
 object ChatServer {
   def main(args: Array[String]) {
 
     val service = new LocalWebsocketService[String] {
 
+      // This keeps track of connected clients
       private[this] val connectedClients = new ConcurrentHashMap[SocketId, Time]()
 
       def onConnect(socketId: SocketId): Future[Unit] = {
         println("** connection received from %s".format(socketId))
-        connectedClients.put(socketId, Time.now)
+        connectedClients.put(socketId, Time.now) // Record when client connected
         Future.Unit
       }
 
@@ -37,12 +41,15 @@ object ChatServer {
 
       def onClose(socketId: SocketId): Future[Unit] = {
         println("** onClose from %s".format(socketId))
-        Future.Unit
+
+        val time = Option(connectedClients.remove(socketId)) map { _.toString }
+        val mesg = "%s has left the chat".format(socketId, time.getOrElse(""))
+        broadcast(socketId, mesg)
       }
 
       private[this] def broadcast(socketId: SocketId, mesg: String): Future[Unit] = {
         val chatFutures = connectedClients.keySet.asScala.toSeq flatMap {
-          case clientId if clientId == socketId => None
+          case clientId if clientId == socketId => None // Don't broadcast to self
           case clientId => Some(writeMessage(clientId, mesg))
         }
 
