@@ -23,6 +23,7 @@ trait LocalWebsocketService[A] extends WebsocketService[A] {
     get(socketId) match {
       case None         => Future.exception(SocketIdNotFound)
       case Some(socket) => onClose(socketId) ensure {
+        contextMap.remove(socketId)
         if (closeChannel) {
           socket.close()
         }

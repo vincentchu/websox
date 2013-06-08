@@ -35,8 +35,6 @@ class ChannelHandlerContextWebsocket[A](
     try {
       closeCallback()
     }
-
-    context.getChannel.close()
   }
 }
 
