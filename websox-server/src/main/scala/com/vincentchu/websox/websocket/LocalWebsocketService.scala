@@ -41,10 +41,12 @@ trait LocalWebsocketService[A] extends WebsocketService[A] {
   def isConnected(socketId: SocketId): Future[Boolean] =
     Future.value(get(socketId).isDefined)
 
-  def writeMessage(socketId: SocketId, mesg: A): Future[Unit] = {
-    get(socketId) match {
-      case Some(socket) => Future.value(socket.sendDownstream(mesg))
-      case None         => Future.exception(SocketIdNotFound)
-    }
+  def writeMessage(socketIds: Seq[SocketId], mesg: A): Future[Unit] = {
+    Future.collect(socketIds map { socketId =>
+      get(socketId) match {
+        case Some(socket) => Future.value(socket.sendDownstream(mesg))
+        case None         => Future.exception(SocketIdNotFound)
+      }
+    }) map { _ => ()}
   }
 }

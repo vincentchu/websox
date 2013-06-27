@@ -18,8 +18,9 @@ trait WebsocketService[A] {
   def isConnected(socketId: SocketId): Future[Boolean]
   def isConnected(ws: Websocket[A]): Future[Boolean] = isConnected(ws.socketId)
 
-  def writeMessage(socketId: SocketId, mesg: A): Future[Unit]
-  def writeMessage(ws: Websocket[A], mesg: A): Future[Unit] = writeMessage(ws.socketId, mesg)
+  def writeMessage(socketIds: Seq[SocketId], mesg: A): Future[Unit]
+  def writeMessage(socketId: SocketId, mesg: A): Future[Unit] = writeMessage(Seq(socketId), mesg)
+  def writeMessage(socket: Websocket[A], mesg: A): Future[Unit] = writeMessage(socket.socketId, mesg)
   def close(socketId: SocketId) = deregisterSocket(socketId, fireCallback = true)
 
   def onConnect(socketId: SocketId): Future[Unit]
