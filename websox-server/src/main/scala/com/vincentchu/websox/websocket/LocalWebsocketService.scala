@@ -1,7 +1,7 @@
 package com.vincentchu.websox.websocket
 
-import java.util.concurrent.ConcurrentHashMap
 import com.twitter.util.Future
+import java.util.concurrent.ConcurrentHashMap
 
 trait LocalWebsocketService[A] extends WebsocketService[A] {
 

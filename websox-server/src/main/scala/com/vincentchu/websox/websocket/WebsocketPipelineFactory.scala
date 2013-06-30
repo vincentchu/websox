@@ -1,8 +1,8 @@
 package com.vincentchu.websox.websocket
 
+import com.vincentchu.websox.message.Message
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http.{HttpResponseEncoder, HttpRequestDecoder}
-import com.vincentchu.websox.message.Message
 
 class WebsocketPipelineFactory[A](mesg: Message[A], service: WebsocketService[A]) extends ChannelPipelineFactory {
   def getPipeline = {

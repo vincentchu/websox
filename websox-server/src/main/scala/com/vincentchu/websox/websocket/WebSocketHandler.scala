@@ -1,11 +1,11 @@
 package com.vincentchu.websox.websocket
 
 import com.twitter.finagle.netty3.Conversions._
+import com.twitter.util.{Bijection, Promise}
+import java.util.UUID
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
-import java.util.UUID
-import com.twitter.util.{Bijection, Promise}
 
 class WebsocketHandler[A](
   converter: Bijection[A, TextWebSocketFrame],
