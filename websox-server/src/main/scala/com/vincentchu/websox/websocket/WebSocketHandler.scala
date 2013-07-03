@@ -2,6 +2,7 @@ package com.vincentchu.websox.websocket
 
 import com.twitter.finagle.netty3.Conversions._
 import com.twitter.util.{Bijection, Promise}
+import com.vincentchu.websox.websocket.WebsocketService.SocketIdNotFound
 import java.util.UUID
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
@@ -32,6 +33,14 @@ class WebsocketHandler[A](
       case wsFrame: WebSocketFrame => handleWebSocketReq(ctx, wsFrame)
       case message: A              => websocket foreach { _.sendUpstream(message) }
     }
+  }
+
+  override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+    service.deregisterSocket(socketId, fireCallback = false) handle {
+      case SocketIdNotFound => ()
+    }
+
+    super.channelClosed(ctx, e)
   }
 
   private[this] def handleWebSocketReq(ctx: ChannelHandlerContext, frame: WebSocketFrame) {
