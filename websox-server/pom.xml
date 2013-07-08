@@ -41,12 +41,20 @@
       <type>pom</type>
       <version>6.5.1</version>
     </dependency>
+
     <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>finagle-http_2.10</artifactId>
       <type>pom</type>
       <version>6.5.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.slick</groupId>
+      <artifactId>slick_2.10</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
   </dependencies>
 
   <build>

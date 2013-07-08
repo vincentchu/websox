@@ -3,6 +3,9 @@ package com.vincentchu.websox.example.echo
 import com.vincentchu.websox.websocket._
 import com.vincentchu.websox.message.StringMessage
 import com.twitter.util.Future
+import scala.slick.session.Database
+import scala.slick.driver.MySQLDriver.simple._
+import Database.threadLocalSession
 
 /**
  * EchoServer
@@ -13,39 +16,41 @@ import com.twitter.util.Future
  * from the connected client, it will close the websocket from the server
  * side.
  */
+
+object Users extends Table[(Int, String, String)]("users") {
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def firstName = column[String]("first_name")
+  def lastName = column[String]("last_name")
+  def * = id ~ firstName ~ lastName
+
+  def autoInc = firstName ~ lastName returning id
+}
+
 object EchoServer {
   def main(args: Array[String]) {
-    val service = new LocalWebsocketService[String] {
-      def onConnect(socketId: SocketId): Future[Unit] = {
-        println("** onConnect")
-        Future.Unit
-      }
 
-      def onMessage(socketId: SocketId, msg: String): Future[Unit] = {
-        println("** onMessage from %s received: %s".format(socketId, msg))
+    println("hi")
 
-        if (msg == "closeme") {
-          // Initiate socket close from the server side
-          close(socketId)
-        } else {
-          // Write message to connected client
-          writeMessage(socketId, msg.toUpperCase)
-        }
-      }
+    val db = Database.forURL("jdbc:mysql://localhost:3306/foo", user="root", driver="com.mysql.jdbc.Driver")
 
-      def onClose(socketId: SocketId): Future[Unit] = {
-        println("** onClose from %s".format(socketId))
-        Future.Unit
+    db withSession {
+//      Users.ddl.drop
+//      Users.ddl.create
+//      Users.insert(1, "john", "doe")
+//      Users.insert(100, "vince", "chu")
+
+      val id = Users.autoInc.insert("foo", "bar")
+      println(s"INSERTED: ${id}")
+
+      Query(Users) foreach { case (id, first, last) =>
+        println(s"${id} - ${first} ${last}}")
+
       }
     }
 
-    val config = ServerConfig(
-      StringMessage, // Type of message your server handles
-      service,       // Your websocket service with application logic
-      8080           // The port you wish to bind to
-    )
+    println("SQL", Users.ddl.createStatements.toSeq)
 
-    println("** Starting EchoServer")
-    Server(config).bind() // .bind() starts the server and binds port
   }
 }
+
+
