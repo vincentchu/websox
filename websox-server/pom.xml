@@ -13,7 +13,7 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.version>2.9.2</scala.version>
+    <scala.version>2.10.2</scala.version>
   </properties>
 
   <repositories>
@@ -32,18 +32,18 @@
     </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala.version}</artifactId>
-      <version>1.7.2</version>
+      <artifactId>scalatest_2.10</artifactId>
+      <version>1.9.1</version>
     </dependency>
     <dependency>
       <groupId>com.twitter</groupId>
-      <artifactId>finagle-core</artifactId>
+      <artifactId>finagle-core_2.10</artifactId>
       <type>pom</type>
       <version>6.5.1</version>
     </dependency>
     <dependency>
       <groupId>com.twitter</groupId>
-      <artifactId>finagle-http</artifactId>
+      <artifactId>finagle-http_2.10</artifactId>
       <type>pom</type>
       <version>6.5.1</version>
     </dependency>
